@@ -62,6 +62,7 @@ export class ConsolePanel extends MainAreaWidget<Panel> {
     sessionContext = this._sessionContext =
       sessionContext ??
       new SessionContext({
+        kernelManager: manager.kernels,
         sessionManager: manager.sessions,
         specsManager: manager.kernelspecs,
         path: manager.contents.localPath(path),
@@ -90,9 +91,14 @@ export class ConsolePanel extends MainAreaWidget<Panel> {
 
     void sessionContext.initialize().then(async value => {
       if (value) {
-        await (
-          options.sessionDialogs ?? new SessionContextDialogs({ translator })
-        ).selectKernel(sessionContext!);
+        let dialog = await (options.sessionDialogs ??
+          new SessionContextDialogs({ translator }));
+        if (
+          options.kernelPreference &&
+          !options.kernelPreference.customEnvVars
+        ) {
+          dialog.selectKernel(sessionContext!);
+        }
       }
       this._connected = new Date();
       this._updateTitlePanel();
